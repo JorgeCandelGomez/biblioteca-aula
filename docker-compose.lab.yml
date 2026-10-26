@@ -1,0 +1,47 @@
+# LAB / DEVELOPMENT ENVIRONMENT
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-biblioteca}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el fichero .env}
+    ports:
+      - "5432:5432" # OPCIONAL: Abres el puerto por si quieres revisar la BD desde tu PC (ej. con DBeaver o PgAdmin)
+    volumes:
+      - datos-postgres-lab:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - red-lab
+
+  web:
+    build: .
+    ports:
+      - "8080:5000" # En tu PC entras a http://localhost:8080 y va al 5000 del contenedor
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-biblioteca}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el fichero .env}
+      FLASK_ENV: development # Activa el modo desarrollo en Flask
+      FLASK_DEBUG: "1" # Activa el reinicio automático al detectar cambios
+    volumes:
+      - .:/app # MAGIA: Sincroniza en tiempo real tu código actual con el contenedor
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - red-lab
+    # En desarrollo sobrescribimos el Gunicorn de producción por el servidor nativo de Flask que soporta recarga en vivo
+    command: ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
+
+networks:
+  red-lab:
+
+volumes:
+  datos-postgres-lab:
