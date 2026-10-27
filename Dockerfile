@@ -1,10 +1,9 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
+
 WORKDIR /app
 
-RUN apk add --no-cache gcc musl-dev postgresql-dev libffi-dev
-
+# Copiamos solo requirements para aprovechar la caché de capas de Docker
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
