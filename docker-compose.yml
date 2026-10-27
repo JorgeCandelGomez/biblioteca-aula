@@ -1,11 +1,10 @@
-# PRODUCTION / DEPLOY: Adaptado para tu proyecto Flask + Postgres unificado
 services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: ${DB_NAME:-biblioteca} # Cambia 'biblioteca' por el nombre de tu BD
+      POSTGRES_DB: ${DB_NAME:-biblioteca}
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el fichero .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
     volumes:
       - datos-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -18,19 +17,15 @@ services:
     restart: unless-stopped
 
   web:
-    build: . # Como tu Dockerfile está en la raíz, el punto indica que busque ahí
+    build: .
     ports:
-      - "80:5000" # Mapea el puerto 80 público de tu EC2 al 5000 interno de Gunicorn
+      - "80:5000"
     environment:
-      DB_HOST: postgres # Conecta con el nombre del servicio de arriba
-      DB_PORT: "5432"
-      DB_NAME: ${DB_NAME:-biblioteca}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el fichero .env}
-      # Añade aquí otras variables que use tu app.py (ej. FLASK_SECRET_KEY)
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-biblioteca}
+      SECRET_KEY: ${SECRET_KEY:-clave_secreta_produccion}
     depends_on:
       postgres:
-        condition: service_healthy # Tu app no arranca hasta que Postgres esté lista
+        condition: service_healthy
     networks:
       - red-biblioteca
     restart: unless-stopped
