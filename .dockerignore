@@ -1,6 +1,8 @@
+.venv
 .env
 .git
 .gitignore
 __pycache__/
 *.pyc
-README.md~
+*.md~
+docs/
