@@ -1,0 +1,12 @@
+# Configuración de las herramientas de desarrollo (la app no usa este fichero)
+
+[tool.ruff]
+target-version = "py312"   # la misma versión de Python que la imagen
+line-length = 120          # longitud máxima de línea
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]   # errores de estilo, fallos típicos y orden de los import
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]      # dónde están los tests
+pythonpath = ["."]         # para que los tests puedan hacer «import app»
