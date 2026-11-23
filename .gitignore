@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 .env
+.pytest-cache/
+.ruff_cache/
