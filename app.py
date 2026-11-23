@@ -58,7 +58,7 @@ def validar(titulo, autor, anio_texto):
     if not titulo:
         errores.append("El título es obligatorio.")
     if not autor:
-        errores.append("El autor es obligatorio.")
+        errores.append("Falta el autor.")
     if anio_texto:  # El año es opcional, pero si se escribe debe ser válido
         try:
             anio = int(anio_texto)
