@@ -1,4 +1,5 @@
 """Biblioteca del aula: aplicación web sencilla para gestionar libros."""
+import json
 import os
 import socket
 import sys
