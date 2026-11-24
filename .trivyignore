@@ -1,0 +1,6 @@
+# CVE que Trivy debe ignorar. Ignorar uno es una EXCEPCIÓN: primero se intenta
+# actualizar la dependencia o la imagen base. Si no se puede, se añade aquí
+# el identificador, con un comentario encima que diga por qué y cuándo revisarlo.
+# Ejemplo (no es real):
+#   # Afecta a un formato de fichero que la app no procesa. Revisar en enero.
+#   CVE-2099-12345

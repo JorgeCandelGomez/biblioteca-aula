@@ -29,3 +29,23 @@ jobs:
 
       - name: Ejecutar los tests con pytest
         run: pytest -v
+
+  build:
+    needs: tests                     # solo si los tests han pasado
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+
+      - name: Construir la imagen Docker
+        run: docker build -t biblioteca:${{ github.sha }} .
+
+      - name: Escanear la imagen con Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: biblioteca:${{ github.sha }}
+          severity: CRITICAL,HIGH    # solo los fallos graves
+          ignore-unfixed: true       # no los que aún no tienen arreglo
+          exit-code: "1"             # si encuentra alguno, el job falla
+          format: table
+          trivyignores: .trivyignore
