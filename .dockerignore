@@ -4,3 +4,10 @@
 __pycache__/
 *.pyc
 README.md~
+tests/
+requirements-dev.txt
+pyproject.toml
+.github/
+.pytest_cache/
+.ruff_cache/
+.trivyignore
