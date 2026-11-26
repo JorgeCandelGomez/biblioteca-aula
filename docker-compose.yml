@@ -12,4 +12,6 @@ services:
       - red-biblioteca
     restart: unless-stopped
 
+networks:
+  red-biblioteca:
 
