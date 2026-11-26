@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  release:
+    types: [published]     # solo al PUBLICAR una release en GitHub
+
+permissions:
+  contents: read           # leer el código
+  packages: write          # subir la imagen a GHCR (Packages)
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.variables.outputs.version }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+
+      - name: Calcular nombre de la imagen y versión
+        id: variables
+        env:                                   # los datos de GitHub entran como texto, nunca como código
+          REPOSITORIO: ${{ github.repository }}
+          ETIQUETA: ${{ github.event.release.tag_name }}
+        run: |
+          IMAGEN="ghcr.io/${REPOSITORIO,,}"    # ,, = a minúsculas (GHCR no admite mayúsculas)
+          if [[ ! "$ETIQUETA" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::La etiqueta '$ETIQUETA' no tiene el formato vX.Y.Z"
+            exit 1
+          fi
+          VERSION="${ETIQUETA#v}"              # v1.2.0 -> 1.2.0
+          echo "imagen=$IMAGEN" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Construir la imagen Docker
+        run: |
+          docker build \
+            -t ${{ steps.variables.outputs.imagen }}:${{ steps.variables.outputs.version }} \
+            -t ${{ steps.variables.outputs.imagen }}:latest \
+            --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }} \
+            --label org.opencontainers.image.version=${{ steps.variables.outputs.version }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            .         # ← el punto: construye con el Dockerfile de esta carpeta (no lo olvides)
+
+      - name: Escanear la imagen con Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.variables.outputs.imagen }}:${{ steps.variables.outputs.version }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+          trivyignores: .trivyignore
+
+      - name: Iniciar sesión en GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Publicar la imagen en GHCR
+        run: |
+          docker push ${{ steps.variables.outputs.imagen }}:${{ steps.variables.outputs.version }}
+          docker push ${{ steps.variables.outputs.imagen }}:latest
+
+      - name: Resumen
+        run: |
+          IMAGEN="${{ steps.variables.outputs.imagen }}:${{ steps.variables.outputs.version }}"
+          echo "Imagen publicada: \`$IMAGEN\`" >> "$GITHUB_STEP_SUMMARY"
