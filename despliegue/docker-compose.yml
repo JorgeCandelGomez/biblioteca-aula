@@ -1,0 +1,12 @@
+# PRODUCCIÓN: no construye nada, descarga la imagen publicada en GHCR.
+# Se usa en la EC2, en ~/despliegue-biblioteca, siempre con: docker compose -p biblioteca ...
+services:
+  app:
+    image: ${IMAGEN:?Define IMAGEN en .env}:${VERSION:?Define VERSION en .env}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Define DATABASE_URL en .env}
+      SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY en .env}
+      APP_VERSION: ${VERSION}       # el pie de página muestra la versión desplegada
