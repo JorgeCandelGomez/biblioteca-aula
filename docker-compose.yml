@@ -1,14 +1,15 @@
+name: biblioteca-dev
 services:
  web:
     build: .
     ports:
-      - "80:5000"
+      - "127.0.0.1:5001:5000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY:-clave_secreta_produccion}
+      APP_VERSION: ${APP_VERSION:-desarrollo}
     networks:
       - red-biblioteca
     restart: unless-stopped
 
-networks:
-  red-biblioteca:
+
